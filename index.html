@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>オンラインカーテン診断ツール</title>
+    <style>
+        /* 全体のデザイン設定 */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #e0f7e0 0%, #a8ddb5 100%);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #1b5e20;
+        }
+        /* 質問部分のデザイン */
+        .question-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .question {
+            font-size: 25px;
+            margin-bottom: 10px;
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        .options label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 20px;
+            color: #2e7d32;
+        }
+        .options input[type="radio"], .options input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .submit-btn {
+            background-color: #388e3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: background-color 0.3s ease;
+        }
+        .submit-btn:hover {
+            background-color: #66bb6a;
+        }
+        /* 検索結果のデザイン */
+        .result-container {
+            margin-top: 40px;
+        }
+        .result-item {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+        }
+        .result-content {
+            flex-grow: 1;
+        }
+        .result-content h3 {
+            margin: 0;
+            font-size: 25px;
+            color: #2e7d32;
+        }
+        .result-content p {
+            margin: 10px 0;
+            font-size: 20px;
+            color: #333;
+        }
+        /* トップ3の結果部分 */
+        .top-results-title, .additional-feature-results-title {
+            text-align: center;
+            color: #1b5e20;
+            margin-bottom: 20px;
+            font-size: 25px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>オンラインカーテン診断ツール</h1>
+        <div id="question-container" class="question-container">
+            <div class="question">UVカット率は何％必要ですか？<span style="font-size: 20px; color: black;">（紫外線をカットし、お肌や家具を守ります）</span></div>
+            <div class="options">
+                <label><input type="radio" name="uvcut" value="99以上">99％以上</label>
+                <label><input type="radio" name="uvcut" value="80以上">80％以上</label>
+                <label><input type="radio" name="uvcut" value="79以下">79％以下</label>
+            </div>
+            <div class="question">遮像機能はどちらを選びますか？<span style="font-size: 20px; color: black;">（昼も夜も外からの視線をカットします）</span></div>
+            <div class="options">
+                <label><input type="radio" name="遮像" value="高遮像">高遮像</label>
+                <label><input type="radio" name="遮像" value="低遮像">低遮像</label>
+            </div>
+            <div class="question">追加で必要な機能を最大3つまで選択してください:</div>
+            <div class="options">
+                <label><input type="checkbox" name="features" value="遮熱">遮熱 <span style="font-size: 20px; color: black;">（夏は遮熱。冬は保温。冷暖房効率も大幅UP）</span></label>
+                <label><input type="checkbox" name="features" value="採光">採光 <span style="font-size: 20px; color: black;">（光を拡散し2倍明るいお部屋へ）</span></label>
+                <label><input type="checkbox" name="features" value="消臭">消臭 <span style="font-size: 20px; color: black;">（つるすだけで匂いを吸着、消臭）</span></label>
+                <label><input type="checkbox" name="features" value="花粉キャッチ">花粉キャッチ <span style="font-size: 20px; color: black;">（花粉とホコリをしっかりキャッチ）</span></label>
+                <label><input type="checkbox" name="features" value="抗カビ">抗カビ <span style="font-size: 20px; color: black;">（抗カビ、抗菌、防臭）</span></label>
+                <label><input type="checkbox" name="features" value="ミラー">ミラー <span style="font-size: 20px; color: black;">（昼間の視線をカット）</span></label>
+                <label><input type="checkbox" name="features" value="防炎">防炎 <span style="font-size: 20px; color: black;">（消防法の防炎性能基準をクリア）</span></label>
+            </div>
+            <button id="submit-btn" class="submit-btn">検索</button>
+        </div>
+        <div id="result-container" class="result-container"></div>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const submitBtn = document.getElementById("submit-btn");
+
+            const curtainsData = [
+                {"商品名": "ENアンティ", "UVカット率": 79, "遮像": "低遮像", "遮熱": 1, "採光": 1, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 1, "ミラー": 0, "防炎": 0, "値段": 4290, "番号": 1},
+                {"商品名": "エコナチュレフレッサ", "UVカット率": 87, "遮像": "高遮像", "遮熱": 1, "採光": 1, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 4290, "番号": 2},
+                {"商品名": "エコナチュレST", "UVカット率": 92, "遮像": "高遮像", "遮熱": 1, "採光": 1, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 3290, "番号": 3},
+                {"商品名": "RL004", "UVカット率": 99, "遮像": "高遮像", "遮熱": 1, "採光": 0, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 4290, "番号": 4},
+                {"商品名": "RL040", "UVカット率": 99, "遮像": "高遮像", "遮熱": 1, "採光": 1, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 4290, "番号": 5},
+                {"商品名": "RL083", "UVカット率": 99, "遮像": "高遮像", "遮熱": 1, "採光": 1, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 4490, "番号": 6},
+                {"商品名": "Nナチュレシャイン", "UVカット率": 87, "遮像": "高遮像", "遮熱": 0, "採光": 1, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 2790, "番号": 7},
+                {"商品名": "RL051", "UVカット率": 81, "遮像": "高遮像", "遮熱": 0, "採光": 0, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 1790, "番号": 8},
+                {"商品名": "エコナチュレブロック", "UVカット率": 87, "遮像": "高遮像", "遮熱": 1, "採光": 0, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 2274, "番号": 9},
+                {"商品名": "エアトースプレーン", "UVカット率": 86, "遮像": "高遮像", "遮熱": 1, "採光": 0, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 2653, "番号": 10},
+                {"商品名": "エコナチュレプレーン", "UVカット率": 85, "遮像": "高遮像", "遮熱": 1, "採光": 0, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 2790, "番号": 11},
+                {"商品名": "エコナチュレボーダー", "UVカット率": 81, "遮像": "高遮像", "遮熱": 1, "採光": 1, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 3290, "番号": 12},
+                {"商品名": "RL039", "UVカット率": 88, "遮像": "高遮像", "遮熱": 0, "採光": 0, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 1716, "番号": 13},
+                {"商品名": "TM03", "UVカット率": 75, "遮像": "低遮像", "遮熱": 0, "採光": 0, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 1490, "番号": 14},
+                {"商品名": "ホワイトクリアST2", "UVカット率": 79, "遮像": "低遮像", "遮熱": 1, "採光": 0, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 1, "防炎": 0, "値段": 1790, "番号": 15},
+                {"商品名": "アラン", "UVカット率": 87, "遮像": "高遮像", "遮熱": 1, "採光": 1, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 1, "防炎": 0, "値段": 1823, "番号": 16},
+                {"商品名": "スタン", "UVカット率": 71, "遮像": "低遮像", "遮熱": 0, "採光": 1, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 1, "防炎": 1, "値段": 1823, "番号": 17},
+                {"商品名": "RL009", "UVカット率": 86, "遮像": "高遮像", "遮熱": 1, "採光": 0, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 1, "値段": 3290, "番号": 18},
+                {"商品名": "ホノカ", "UVカット率": 83, "遮像": "高遮像", "遮熱": 1, "採光": 0, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 3290, "番号": 19},
+                {"商品名": "キャッチCグリップ", "UVカット率": 71, "遮像": "低遮像", "遮熱": 0, "採光": 0, "消臭": 0, "花粉キャッチ": 1, "抗カビ": 0, "ミラー": 1, "防炎": 0, "値段": 1490, "番号": 20},
+                {"商品名": "RL010", "UVカット率": 74, "遮像": "低遮像", "遮熱": 1, "採光": 0, "消臭": 0, "花粉キャッチ": 1, "抗カビ": 0, "ミラー": 1, "防炎": 0, "値段": 2190, "番号": 21},
+                {"商品名": "キャッチCアンモル", "UVカット率": 78, "遮像": "低遮像", "遮熱": 1, "採光": 0, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 1, "ミラー": 1, "防炎": 0, "値段": 1953, "番号": 22},
+                {"商品名": "キャッチCソニック", "UVカット率": 92, "遮像": "高遮像", "遮熱": 1, "採光": 0, "消臭": 0, "花粉キャッチ": 1, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 2790, "番号": 23},
+                {"商品名": "キャッチCグランス", "UVカット率": 84, "遮像": "高遮像", "遮熱": 1, "採光": 0, "消臭": 0, "花粉キャッチ": 1, "抗カビ": 1, "ミラー": 1, "防炎": 0, "値段": 2790, "番号": 24},
+                {"商品名": "RL043", "UVカット率": 79, "遮像": "低遮像", "遮熱": 0, "採光": 0, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 1790, "番号": 25},
+                {"商品名": "エコオアシスアンモル", "UVカット率": 82, "遮像": "高遮像", "遮熱": 1, "採光": 0, "消臭": 0, "花粉キャッチ": 1, "抗カビ": 1, "ミラー": 1, "防炎": 0, "値段": 3290, "番号": 26},
+                {"商品名": "RL030", "UVカット率": 84, "遮像": "高遮像", "遮熱": 1, "採光": 1, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 3290, "番号": 27},
+                {"商品名": "RL064", "UVカット率": 75, "遮像": "低遮像", "遮熱": 0, "採光": 0, "消臭": 1, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 1, "防炎": 0, "値段": 1790, "番号": 28},
+                {"商品名": "デオリス", "UVカット率": 77, "遮像": "低遮像", "遮熱": 1, "採光": 0, "消臭": 1, "花粉キャッチ": 0, "抗カビ": 1, "ミラー": 1, "防炎": 0, "値段": 3290, "番号": 29},
+                {"商品名": "Nナチュレドット", "UVカット率": 93, "遮像": "高遮像", "遮熱": 0, "採光": 1, "消臭": 0, "花粉キャッチ": 0, "抗カビ": 0, "ミラー": 0, "防炎": 0, "値段": 3290, "番号": 30}
+            ];
+
+            function filterCurtains(uvcut, shazou, selectedFeatures) {
+                let filteredCurtains = curtainsData.filter(curtain => {
+                    return curtain.UVカット率 >= uvcut && curtain.遮像 === shazou;
+                });
+
+                const scoredCurtains = filteredCurtains.map(curtain => {
+                    let score = 0;
+                    selectedFeatures.forEach(feature => {
+                        if (curtain[feature] === 1) {
+                            score += 1;
+                        }
+                    });
+                    return { ...curtain, score };
+                });
+
+                scoredCurtains.sort((a, b) => {
+                    if (b.score === a.score) {
+                        return b.値段 - a.値段;
+                    }
+                    return b.score - a.score;
+                });
+
+                return scoredCurtains.slice(0, 3);
+            }
+
+            function filterAdditionalFeaturesCurtains(selectedFeatures) {
+                return curtainsData
+                    .filter(curtain => {
+                        return selectedFeatures.some(feature => curtain[feature] === 1);
+                    })
+                    .sort((a, b) => {
+                        const aFeatureCount = ['消臭', '花粉キャッチ', '抗カビ', 'ミラー', '防炎'].reduce((count, feature) => count + (a[feature] === 1 ? 1 : 0), 0);
+                        const bFeatureCount = ['消臭', '花粉キャッチ', '抗カビ', 'ミラー', '防炎'].reduce((count, feature) => count + (b[feature] === 1 ? 1 : 0), 0);
+
+                        if (aFeatureCount === bFeatureCount) {
+                            return b.値段 - a.値段;
+                        }
+                        return bFeatureCount - aFeatureCount;
+                    });
+            }
+
+            function showResults(results, additionalFeatureResults) {
+                const resultContainer = document.getElementById("result-container");
+                resultContainer.innerHTML = "";
+
+                const topResultsTitle = document.createElement("h2");
+                topResultsTitle.classList.add("top-results-title");
+                topResultsTitle.textContent = "おすすめカーテン";
+                resultContainer.appendChild(topResultsTitle);
+
+                if (results.length > 0) {
+                    results.forEach(curtain => {
+                        const curtainElement = document.createElement("div");
+                        curtainElement.classList.add("result-item");
+
+                        const contentElement = document.createElement("div");
+                        contentElement.classList.add("result-content");
+
+                        const nameElement = document.createElement("h3");
+                        nameElement.textContent = `${curtain.番号}: ${curtain.商品名} - ¥${curtain.値段}~`;
+
+                        const featuresElement = document.createElement("p");
+                        featuresElement.textContent = `UVカット率: ${curtain.UVカット率}%, 遮像: ${curtain.遮像}, 機能: ${Object.keys(curtain).filter(key => curtain[key] === 1 && key !== 'score').join(', ')}`;
+
+                        contentElement.appendChild(nameElement);
+                        contentElement.appendChild(featuresElement);
+                        curtainElement.appendChild(contentElement);
+                        resultContainer.appendChild(curtainElement);
+                    });
+                } else {
+                    resultContainer.textContent = "該当するカーテンが見つかりませんでした。";
+                }
+
+                const additionalFeatureResultsTitle = document.createElement("h2");
+                additionalFeatureResultsTitle.classList.add("additional-feature-results-title");
+                additionalFeatureResultsTitle.textContent = "追加機能付きカーテン";
+                resultContainer.appendChild(additionalFeatureResultsTitle);
+
+                if (additionalFeatureResults.length > 0) {
+                    additionalFeatureResults.forEach(curtain => {
+                        const curtainElement = document.createElement("div");
+                        curtainElement.classList.add("result-item");
+
+                        const contentElement = document.createElement("div");
+                        contentElement.classList.add("result-content");
+
+                        const nameElement = document.createElement("h3");
+                        nameElement.textContent = `${curtain.番号}: ${curtain.商品名} - ¥${curtain.値段}~`;
+
+                        const featuresElement = document.createElement("p");
+                        featuresElement.textContent = `UVカット率: ${curtain.UVカット率}%, 遮像: ${curtain.遮像}, 機能: ${Object.keys(curtain).filter(key => curtain[key] === 1 && key !== 'score').join(', ')}`;
+
+                        contentElement.appendChild(nameElement);
+                        contentElement.appendChild(featuresElement);
+                        curtainElement.appendChild(contentElement);
+                        resultContainer.appendChild(curtainElement);
+                    });
+                } else {
+                    const noAdditionalFeaturesMessage = document.createElement("p");
+                    noAdditionalFeaturesMessage.textContent = "追加機能があるカーテンが見つかりませんでした。";
+                    resultContainer.appendChild(noAdditionalFeaturesMessage);
+                }
+            }
+
+            submitBtn.addEventListener("click", () => {
+                const uvcutValue = document.querySelector('input[name="uvcut"]:checked').value;
+                let uvcutThreshold;
+
+                if (uvcutValue === "99以上") {
+                    uvcutThreshold = 99;
+                } else if (uvcutValue === "80以上") {
+                    uvcutThreshold = 80;
+                } else {
+                    uvcutThreshold = 0;
+                }
+
+                const shazouValue = document.querySelector('input[name="遮像"]:checked').value;
+                const selectedFeatures = Array.from(document.querySelectorAll('input[name="features"]:checked')).map(cb => cb.value);
+
+                const topResults = filterCurtains(uvcutThreshold, shazouValue, selectedFeatures);
+                const additionalFeatureResults = filterAdditionalFeaturesCurtains(selectedFeatures);
+                showResults(topResults, additionalFeatureResults);
+            });
+        });
+    </script>
+</body>
+</html>
